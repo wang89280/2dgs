@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "method": "ON",
+  "model_unchanged": true,
+  "differences": {
+    "psnr_db": 0.0,
+    "psnr_nonblack_db": 0.0,
+    "ssim": 0.0
+  }
+}

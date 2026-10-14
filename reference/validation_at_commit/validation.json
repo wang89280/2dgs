@@ -1,0 +1,28 @@
+{
+  "implementation_tests_passed": true,
+  "tests": [
+    "screen radius [99,8], threshold20: exactly one survivor",
+    "post-densification pruning removes the oversized primitive",
+    "Adam optimizer states stay aligned after pruning",
+    "background alpha gradient reduces opacity, foreground gradient increases it",
+    "uncertain silhouette band has zero alpha-loss gradient",
+    "normal alignment does not reward increasing opacity"
+  ],
+  "actual_data_smoke": {
+    "steps": 20,
+    "method": "ON",
+    "initial_gaussians": 39707,
+    "completed": true,
+    "test_evaluation_performed": false,
+    "model": "/home/wk/01_code/03_gs/2dgs-foreground-fix-20261014/smoke_20",
+    "excluded_from_formal_results": true
+  },
+  "original_ON_renderer_equivalence": "PSNR, nonblack PSNR and SSIM maximum difference across ten test views all exactly zero",
+  "mask_inspection": {
+    "all_70_training_views_seen": true,
+    "preview_files": ["training_masks_01.png", "training_masks_02.png"],
+    "observations": "Green contours follow the seed outline throughout the turntable sequence; no grossly missing seed or background-sized connected component is visible. Fine boundary ambiguity is excluded by a 3px band. This visual check is not pixelwise ground-truth validation.",
+    "evaluation_masks_generated": false
+  },
+  "formal_training_metrics_complete": false
+}

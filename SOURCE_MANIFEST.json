@@ -1,0 +1,216 @@
+{
+  "source_repository": "F:\\03_matlab_python\\352_seed_3dgs\\code\\00_colmap\\03_meatshape_cpp\\release\\V9_SfM_2DGS_Complete_20261012",
+  "source_commit": "85b1775bd49bdb468922c11b3838f8cacb89995f",
+  "files": [
+    {
+      "source": "code/2dgs_foreground_fix/LICENSE.md",
+      "path": "code/2dgs_foreground_fix/LICENSE.md",
+      "sha256": "cd5c95b3cfff3acc1bd412420c770f88809331c3db6872df11a970147aa8e81f"
+    },
+    {
+      "source": "code/2dgs_foreground_fix/README.md",
+      "path": "code/2dgs_foreground_fix/README.md",
+      "sha256": "8a8efaa8677a77a4d709b071ee25d67f95bbc4a997460e074331131dfed1f99f"
+    },
+    {
+      "source": "code/2dgs_foreground_fix/arguments/__init__.py",
+      "path": "code/2dgs_foreground_fix/arguments/__init__.py",
+      "sha256": "85e83da225f47a9ac96ff4e0cbfd5b419d2d3dfe2a1d9f348aec69abb455b647"
+    },
+    {
+      "source": "code/2dgs_foreground_fix/gaussian_renderer/__init__.py",
+      "path": "code/2dgs_foreground_fix/gaussian_renderer/__init__.py",
+      "sha256": "c27c0f8ba31ae8adf75e56291802ad07b0db1bcea4b94b52c8424098ff65c11a"
+    },
+    {
+      "source": "code/2dgs_foreground_fix/gaussian_renderer/network_gui.py",
+      "path": "code/2dgs_foreground_fix/gaussian_renderer/network_gui.py",
+      "sha256": "579f920d2a38d3ab832e25c3a2334711470c11cadee5714030475c3eff6839e4"
+    },
+    {
+      "source": "code/2dgs_foreground_fix/lpipsPyTorch/__init__.py",
+      "path": "code/2dgs_foreground_fix/lpipsPyTorch/__init__.py",
+      "sha256": "a657ce7355782eb970f95fd0d2e26eec5b9023212d2b655814da6e15b70510b4"
+    },
+    {
+      "source": "code/2dgs_foreground_fix/lpipsPyTorch/modules/lpips.py",
+      "path": "code/2dgs_foreground_fix/lpipsPyTorch/modules/lpips.py",
+      "sha256": "3bece0b9cf9943af5b043026458819d259df9bfe7c2a1d3ffc6c905e7e5aa2b4"
+    },
+    {
+      "source": "code/2dgs_foreground_fix/lpipsPyTorch/modules/networks.py",
+      "path": "code/2dgs_foreground_fix/lpipsPyTorch/modules/networks.py",
+      "sha256": "dfa6f152b0e3fbc23ac3bfaea52b46e9473e64ad539ea22ab030c57af51c7f14"
+    },
+    {
+      "source": "code/2dgs_foreground_fix/lpipsPyTorch/modules/utils.py",
+      "path": "code/2dgs_foreground_fix/lpipsPyTorch/modules/utils.py",
+      "sha256": "1bd4a7d4e7b43215497675ed852936fe4f27e7ea3068afe0b0e1f7cfb6c48570"
+    },
+    {
+      "source": "code/2dgs_foreground_fix/scene/__init__.py",
+      "path": "code/2dgs_foreground_fix/scene/__init__.py",
+      "sha256": "7e0b81438d64c9cd215fa7c9913ec01c1bfb9eed97a97543747f43d8efe1b94d"
+    },
+    {
+      "source": "code/2dgs_foreground_fix/scene/cameras.py",
+      "path": "code/2dgs_foreground_fix/scene/cameras.py",
+      "sha256": "c9436b9aae214bd0c8280e842b05e8ac54e6579b0524b568f2acc3d6a13b95e8"
+    },
+    {
+      "source": "code/2dgs_foreground_fix/scene/colmap_loader.py",
+      "path": "code/2dgs_foreground_fix/scene/colmap_loader.py",
+      "sha256": "6948ce06366e1f727ddffc39a445bf4b6873824f02abc39df63eb0c8f0fb3f36"
+    },
+    {
+      "source": "code/2dgs_foreground_fix/scene/dataset_readers.py",
+      "path": "code/2dgs_foreground_fix/scene/dataset_readers.py",
+      "sha256": "5bbe2b440c5e1f7de253c73444e37f3afecd011f62a526ef44d265d98534b2a4"
+    },
+    {
+      "source": "code/2dgs_foreground_fix/scene/gaussian_model.py",
+      "path": "code/2dgs_foreground_fix/scene/gaussian_model.py",
+      "sha256": "d03aef40ca9d5bfad62d924524c6333d5e556f647c24fc6ad10f7606e294f46a"
+    },
+    {
+      "source": "code/2dgs_foreground_fix/train.py",
+      "path": "code/2dgs_foreground_fix/train.py",
+      "sha256": "0c8324c7be1ec03b9bad08e2c39c6c75559d7ed268a750cc72a2ad5bfafebec0"
+    },
+    {
+      "source": "code/2dgs_foreground_fix/utils/camera_utils.py",
+      "path": "code/2dgs_foreground_fix/utils/camera_utils.py",
+      "sha256": "2278d45c14cf6e06476dfadc404990fdcb3acbb3e8f763c4ffc36e2802ccfe60"
+    },
+    {
+      "source": "code/2dgs_foreground_fix/utils/foreground_stability.py",
+      "path": "code/2dgs_foreground_fix/utils/foreground_stability.py",
+      "sha256": "e211ba44c430d376bfc237e5972ae8eeec41b77e071e29a3229f8a98099e716d"
+    },
+    {
+      "source": "code/2dgs_foreground_fix/utils/general_utils.py",
+      "path": "code/2dgs_foreground_fix/utils/general_utils.py",
+      "sha256": "7823e66a944496e4f06971888a8a4277adde41ecdb557fc3d8717db139a5d59b"
+    },
+    {
+      "source": "code/2dgs_foreground_fix/utils/graphics_utils.py",
+      "path": "code/2dgs_foreground_fix/utils/graphics_utils.py",
+      "sha256": "d6e75de8161e98b72c2691e8a944a842e1b6625d2306035d079c868ac632edfc"
+    },
+    {
+      "source": "code/2dgs_foreground_fix/utils/image_utils.py",
+      "path": "code/2dgs_foreground_fix/utils/image_utils.py",
+      "sha256": "9f7e4fd3c3eae0dcf1894e3f329ec7304eedf825a1e40e0c765e295465a9805d"
+    },
+    {
+      "source": "code/2dgs_foreground_fix/utils/loss_utils.py",
+      "path": "code/2dgs_foreground_fix/utils/loss_utils.py",
+      "sha256": "8f366bd24120741f1f0edd6935a3e69d6aad724af689023b6cedcc7abd8f38d1"
+    },
+    {
+      "source": "code/2dgs_foreground_fix/utils/mcube_utils.py",
+      "path": "code/2dgs_foreground_fix/utils/mcube_utils.py",
+      "sha256": "2b0c3c5e65afc4b022e62c23aa6a98f8dfa35ddfc789dc5e85082538afe80d76"
+    },
+    {
+      "source": "code/2dgs_foreground_fix/utils/mesh_utils.py",
+      "path": "code/2dgs_foreground_fix/utils/mesh_utils.py",
+      "sha256": "6e58b2b59cfeb6e1ba31ec087bb6b64fa032175ec42198ced6d25ddf5b518f56"
+    },
+    {
+      "source": "code/2dgs_foreground_fix/utils/point_utils.py",
+      "path": "code/2dgs_foreground_fix/utils/point_utils.py",
+      "sha256": "3bfbd7a496b7f55d30aebccb1abc6df407a2dd4896283f68f5c8a67513317703"
+    },
+    {
+      "source": "code/2dgs_foreground_fix/utils/render_utils.py",
+      "path": "code/2dgs_foreground_fix/utils/render_utils.py",
+      "sha256": "a482b3d72945103e85e3fe3d858cf9bbc7001c5726ae1e229835f6d7533adf16"
+    },
+    {
+      "source": "code/2dgs_foreground_fix/utils/sh_utils.py",
+      "path": "code/2dgs_foreground_fix/utils/sh_utils.py",
+      "sha256": "7d1ff267546390635e6d1f68c4f88c4a8b052482d5c9be1d32f06bc69e9a96e7"
+    },
+    {
+      "source": "code/2dgs_foreground_fix/utils/system_utils.py",
+      "path": "code/2dgs_foreground_fix/utils/system_utils.py",
+      "sha256": "be01c02d3118c5d53808bc04efccd00c35a705a43a87c3583ea2f4752bc48553"
+    },
+    {
+      "source": "tools/run_foreground_fix_2dgs.py",
+      "path": "reference/historical_tools/run_foreground_fix_2dgs.py",
+      "sha256": "17bed71a6e98343386041b5646a5013a468227e67a262656115bd0106b7b0e4c"
+    },
+    {
+      "source": "tools/evaluate_foreground_fix_2dgs.py",
+      "path": "reference/historical_tools/evaluate_foreground_fix_2dgs.py",
+      "sha256": "e2bacda15a3456024a7f772e6b0a698ec19852f5185be7f6bd27c9858612c3ed"
+    },
+    {
+      "source": "tools/progress_foreground_fix_2dgs.py",
+      "path": "reference/historical_tools/progress_foreground_fix_2dgs.py",
+      "sha256": "c8e00fc2d330c479d5df53b496150fddc068e23ccbfa87b181c4bab211bf970b"
+    },
+    {
+      "source": "tools/report_foreground_fix_2dgs.py",
+      "path": "reference/historical_tools/report_foreground_fix_2dgs.py",
+      "sha256": "53297886586b92ac4320bbd6abe4ce248ad4656dcd73b0d2c918600a34df790c"
+    },
+    {
+      "source": "tools/test_foreground_fix.py",
+      "path": "tools/test_foreground_fix.py",
+      "sha256": "dfb2281d3f22819f049234161387b5174f0c012be7aa1ad9095fb99d6002a452"
+    },
+    {
+      "source": "outputs/foreground_fix_2dgs_2-1_20261014/protocol.json",
+      "path": "reference/validation_at_commit/protocol.json",
+      "sha256": "048cd0740206b5cc6e30153708a6d29fe22e126bda20e325738e299d5a634c2c"
+    },
+    {
+      "source": "outputs/foreground_fix_2dgs_2-1_20261014/renderer_equivalence.json",
+      "path": "reference/validation_at_commit/renderer_equivalence.json",
+      "sha256": "5bb587faa3b7dc09d73061dcd4623927b616864f7490dac93e17c323dee56fee"
+    },
+    {
+      "source": "outputs/foreground_fix_2dgs_2-1_20261014/runtime.json",
+      "path": "reference/validation_at_commit/runtime.json",
+      "sha256": "ae2b482f916d980bd6478f92887b9d5b20f993be8a2b85a7d2202f052c1e1df5"
+    },
+    {
+      "source": "outputs/foreground_fix_2dgs_2-1_20261014/training_masks_01.png",
+      "path": "reference/validation_at_commit/training_masks_01.png",
+      "sha256": "2701fd81d5cf1bada532a73f623ae2454a282f244db389d1e17df8f278260055"
+    },
+    {
+      "source": "outputs/foreground_fix_2dgs_2-1_20261014/training_masks_02.png",
+      "path": "reference/validation_at_commit/training_masks_02.png",
+      "sha256": "090af45c4db448a770b0322f7e421f0836b8b56616dfd1d32c927aed9253fb3e"
+    },
+    {
+      "source": "outputs/foreground_fix_2dgs_2-1_20261014/validation.json",
+      "path": "reference/validation_at_commit/validation.json",
+      "sha256": "45cd1d1f25aad778a850a8665226380a05c5231577623cd65875c035d30a21e8"
+    },
+    {
+      "source": "code/2dgs/arguments/__init__.py",
+      "path": "reference/original_2dgs/arguments/__init__.py",
+      "sha256": "24c3b6f93f230b2d032d04471f49959d5c16600fab2e540b6692f079c917f2ce"
+    },
+    {
+      "source": "code/2dgs/scene/dataset_readers.py",
+      "path": "reference/original_2dgs/scene/dataset_readers.py",
+      "sha256": "de7ad52634eacde975c67f2bdfffd18a5a99d1cf52460b1c658b70e784978cf2"
+    },
+    {
+      "source": "code/2dgs/scene/gaussian_model.py",
+      "path": "reference/original_2dgs/scene/gaussian_model.py",
+      "sha256": "9dd1e206ea7d050ef58784ad823b30fcb54258b12bc7434d574f56b7e65d70ec"
+    },
+    {
+      "source": "code/2dgs/train.py",
+      "path": "reference/original_2dgs/train.py",
+      "sha256": "82eaa5a69b57fa14ee3cc0f7d9534cc963e173e391db85c173030cd9c1b825c6"
+    }
+  ]
+}

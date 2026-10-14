@@ -1,0 +1,8 @@
+{
+  "python": "/home/wk/miniconda3/envs/surfel_splatting/bin/python",
+  "torch": "2.3.1+cu118",
+  "cuda": "11.8",
+  "gpu": "NVIDIA GeForce RTX 3080",
+  "rasterizer": "/home/wk/01_code/03_gs/2d-gaussian-splatting-main/submodules/diff-surfel-rasterization/diff_surfel_rasterization/_C.cpython-39-x86_64-linux-gnu.so",
+  "rasterizer_sha256": "4b2ac4762f39045f07dfcb81586046623ad1560e29b3e962ce0ad07a9a5eace7"
+}

@@ -1,0 +1,268 @@
+--- code/2dgs/arguments/__init__.py
++++ code/2dgs_foreground_fix/arguments/__init__.py
+@@ -94,6 +94,13 @@
+         self.densify_from_iter = 500
+         self.densify_until_iter = 15_000
+         self.densify_grad_threshold = 0.0002
++        self.foreground_stability = False
++        self.lambda_alpha_bg = 0.1
++        self.lambda_alpha_fg = 0.01
++        self.normal_from_iter = 15_000
++        self.normal_ramp_iters = 5_000
++        self.stability_prune_interval = 1_000
++        self.max_screen_radius_fraction = 0.25
+         super().__init__(parser, "Optimization Parameters")
+ 
+ def get_combined_args(parser : ArgumentParser):
+--- code/2dgs/scene/dataset_readers.py
++++ code/2dgs_foreground_fix/scene/dataset_readers.py
+@@ -295,7 +295,7 @@
+         cam_intrinsics=cam_intrinsics,
+         images_folder=images_folder,
+         masks_folder=masks_folder,
+-        use_masks=use_masks,
++        use_masks=False,
+     )
+     cam_infos = sorted(cam_infos_unsorted.copy(), key = lambda x : x.image_name)
+ 
+@@ -306,6 +306,18 @@
+         train_cam_infos = cam_infos
+         test_cam_infos = []
+ 
++    # Split first: evaluation masks are neither generated nor loaded.
++    if use_masks:
++        loaded_train = []
++        for camera in train_cam_infos:
++            mask_path = os.path.join(masks_folder, camera.image_name + '.png')
++            if not os.path.isfile(mask_path):
++                raise FileNotFoundError('Missing training mask: ' + mask_path)
++            mask = Image.open(mask_path).convert('L')
++            if mask.size != camera.image.size:
++                raise ValueError('Training mask/image dimensions differ: ' + mask_path)
++            loaded_train.append(camera._replace(mask=mask, mask_path=mask_path))
++        train_cam_infos = loaded_train
+     nerf_normalization = getNerfppNorm(train_cam_infos)
+ 
+     ply_path = os.path.join(sparse_dir, "points3D.ply")
+--- code/2dgs/scene/gaussian_model.py
++++ code/2dgs_foreground_fix/scene/gaussian_model.py
+@@ -326,6 +326,7 @@
+         return optimizable_tensors
+ 
+     def densification_postfix(self, new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation):
++        previous_radii = self.max_radii2D
+         d = {"xyz": new_xyz,
+         "f_dc": new_features_dc,
+         "f_rest": new_features_rest,
+@@ -343,7 +344,8 @@
+ 
+         self.xyz_gradient_accum = torch.zeros((self.get_xyz.shape[0], 1), device="cuda")
+         self.denom = torch.zeros((self.get_xyz.shape[0], 1), device="cuda")
+-        self.max_radii2D = torch.zeros((self.get_xyz.shape[0]), device="cuda")
++        # Preserve statistics of existing points until screen-size pruning.
++        self.max_radii2D = torch.cat((previous_radii, torch.zeros((new_xyz.shape[0],), device="cuda")))
+ 
+     def densify_and_split(self, grads, grad_threshold, scene_extent, N=2):
+         n_init_points = self.get_xyz.shape[0]
+@@ -400,8 +402,24 @@
+             prune_mask = torch.logical_or(torch.logical_or(prune_mask, big_points_vs), big_points_ws)
+         self.prune_points(prune_mask)
+ 
++        # Begin a new radius window only after consuming the previous one.
++        self.max_radii2D.zero_()
++
+         torch.cuda.empty_cache()
++
++    def prune_unstable(self, extent, max_screen_size):
++        """Continue conservative safety pruning after densification ends."""
++        bad = (self.get_opacity[:, 0] < 0.005)
++        bad |= (self.get_scaling.max(dim=1).values > 0.1 * extent)
++        bad |= (self.max_radii2D > max_screen_size)
++        count = int(bad.sum())
++        if count == len(bad):
++            raise RuntimeError('Stability pruning would remove every Gaussian')
++        if count:
++            self.prune_points(bad)
++        self.max_radii2D.zero_()
++        return count
+ 
+     def add_densification_stats(self, viewspace_point_tensor, update_filter):
+         self.xyz_gradient_accum[update_filter] += torch.norm(viewspace_point_tensor.grad[update_filter], dim=-1, keepdim=True)
+-        self.denom[update_filter] += 1+        self.denom[update_filter] += 1
+--- code/2dgs/train.py
++++ code/2dgs_foreground_fix/train.py
+@@ -10,6 +10,9 @@
+ #
+ 
+ import os
++import json
++import random
++import numpy as np
+ import torch
+ import torch.nn.functional as F
+ from random import randint
+@@ -23,6 +26,7 @@
+ from utils.image_utils import psnr, render_net_image
+ from argparse import ArgumentParser, Namespace
+ from arguments import ModelParams, PipelineParams, OptimizationParams
++from utils.foreground_stability import mask_regions, stability_losses
+ try:
+     from torch.utils.tensorboard import SummaryWriter
+     TENSORBOARD_FOUND = True
+@@ -51,9 +55,26 @@
+     gaussians = GaussianModel(dataset.sh_degree)
+     scene = Scene(dataset, gaussians)
+     gaussians.training_setup(opt)
++    resumed_state = None
+     if checkpoint:
+-        (model_params, first_iter) = torch.load(checkpoint)
++        checkpoint_data = torch.load(checkpoint)
++        model_params, first_iter = checkpoint_data[:2]
++        if len(checkpoint_data) > 2:
++            resumed_state = checkpoint_data[2]
+         gaussians.restore(model_params, opt)
++
++    if opt.foreground_stability:
++        if not dataset.use_masks:
++            raise ValueError('Foreground stability requires training masks')
++        for cam in scene.getTrainCameras():
++            mask = resize_mask_like(cam.gt_mask, cam.original_image)
++            if mask is None:
++                raise ValueError('Missing training mask: ' + cam.image_name)
++            # Keep mask tensors on CPU alongside RGB and transfer one view at a time.
++            cam.stability_regions = tuple(x.cpu() for x in mask_regions(mask.cpu()))
++        assert all(c.gt_mask is None for c in scene.getTestCameras()), 'Evaluation masks must not be loaded'
++    with open(os.path.join(scene.model_path, 'optimization_args.json'), 'w') as f:
++        json.dump(vars(opt), f, indent=2)
+ 
+     bg_color = [1, 1, 1] if dataset.white_background else [0, 0, 0]
+     background = torch.tensor(bg_color, dtype=torch.float32, device="cuda")
+@@ -62,6 +83,13 @@
+     iter_end = torch.cuda.Event(enable_timing = True)
+ 
+     viewpoint_stack = None
++    if resumed_state:
++        random.setstate(resumed_state['python_rng'])
++        np.random.set_state(resumed_state['numpy_rng'])
++        torch.set_rng_state(resumed_state['torch_rng'])
++        torch.cuda.set_rng_state_all(resumed_state['cuda_rng'])
++        by_name = {c.image_name: c for c in scene.getTrainCameras()}
++        viewpoint_stack = [by_name[n] for n in resumed_state['view_stack']]
+     ema_loss_for_log = 0.0
+     ema_dist_for_log = 0.0
+     ema_normal_for_log = 0.0
+@@ -87,7 +115,7 @@
+         image, viewspace_point_tensor, visibility_filter, radii = render_pkg["render"], render_pkg["viewspace_points"], render_pkg["visibility_filter"], render_pkg["radii"]
+         
+         gt_image = viewpoint_cam.original_image.cuda()
+-        if getattr(dataset, "use_masks", False):
++        if getattr(dataset, "use_masks", False) and not opt.foreground_stability:
+             mask = resize_mask_like(viewpoint_cam.gt_mask, gt_image)
+             if mask is None:
+                 raise RuntimeError(
+@@ -112,9 +140,16 @@
+         normal_error = (1 - (rend_normal * surf_normal).sum(dim=0))[None]
+         normal_loss = lambda_normal * (normal_error).mean()
+         dist_loss = lambda_dist * (rend_dist).mean()
++        silhouette_loss = image.new_zeros(())
++        if opt.foreground_stability:
++            fg, bg = (region.to(image.device) for region in viewpoint_cam.stability_regions)
++            silhouette_loss, normal_loss, dist_loss, alpha_bg, alpha_fg_error = stability_losses(
++                render_pkg, fg, bg, iteration, opt)
+ 
+         # loss
+-        total_loss = loss + dist_loss + normal_loss
++        total_loss = loss + dist_loss + normal_loss + silhouette_loss
++        if not torch.isfinite(total_loss):
++            raise RuntimeError('Non-finite loss at iteration ' + str(iteration))
+         
+         total_loss.backward()
+ 
+@@ -157,17 +192,26 @@
+ 
+ 
+             # Densification
++            if opt.foreground_stability:
++                gaussians.max_radii2D[visibility_filter] = torch.max(gaussians.max_radii2D[visibility_filter], radii[visibility_filter])
+             if iteration < opt.densify_until_iter:
+                 gaussians.max_radii2D[visibility_filter] = torch.max(gaussians.max_radii2D[visibility_filter], radii[visibility_filter])
+                 gaussians.add_densification_stats(viewspace_point_tensor, visibility_filter)
+ 
+                 if iteration > opt.densify_from_iter and iteration % opt.densification_interval == 0:
+                     size_threshold = 20 if iteration > opt.opacity_reset_interval else None
++                    if opt.foreground_stability and size_threshold:
++                        size_threshold = opt.max_screen_radius_fraction * viewpoint_cam.image_width
+                     gaussians.densify_and_prune(opt.densify_grad_threshold, opt.opacity_cull, scene.cameras_extent, size_threshold)
+                 
+                 if iteration % opt.opacity_reset_interval == 0 or (dataset.white_background and iteration == opt.densify_from_iter):
+                     gaussians.reset_opacity()
+ 
++            if opt.foreground_stability and iteration >= opt.densify_until_iter and iteration % opt.stability_prune_interval == 0 and iteration < opt.iterations:
++                removed = gaussians.prune_unstable(scene.cameras_extent,
++                    opt.max_screen_radius_fraction * viewpoint_cam.image_width)
++                print('\nSTABILITY_PRUNE', iteration, removed, flush=True)
++
+             # Optimizer step
+             if iteration < opt.iterations:
+                 gaussians.optimizer.step()
+@@ -176,7 +220,19 @@
+             if save_checkpoint:
+                 save_reason = "automatic" if autosave_due else "requested/final"
+                 print("\n[ITER {}] Saving Checkpoint ({})".format(iteration, save_reason))
+-                torch.save((gaussians.capture(), iteration), scene.model_path + "/chkpnt" + str(iteration) + ".pth")
++                rng_state = dict(python_rng=random.getstate(), numpy_rng=np.random.get_state(),
++                    torch_rng=torch.get_rng_state(), cuda_rng=torch.cuda.get_rng_state_all(),
++                    view_stack=[c.image_name for c in viewpoint_stack])
++                torch.save((gaussians.capture(), iteration, rng_state), scene.model_path + "/chkpnt" + str(iteration) + ".pth")
++            if opt.foreground_stability and iteration % 100 == 0:
++                progress = dict(iteration=iteration,gaussians=len(gaussians.get_xyz),
++                    rgb_loss=float(loss),normal_loss=float(normal_loss),silhouette_loss=float(silhouette_loss),
++                    training_view=viewpoint_cam.image_name,background_alpha=float(alpha_bg),
++                    foreground_alpha_error=float(alpha_fg_error),max_scale=float(gaussians.get_scaling.max()))
++                path=os.path.join(scene.model_path, 'stability_progress.json')
++                with open(path+'.tmp','w') as f:json.dump(progress,f,indent=2)
++                os.replace(path+'.tmp',path)
++                if iteration % 1000 == 0: print('\nSTABILITY',json.dumps(progress),flush=True)
+ 
+         with torch.no_grad():        
+             if network_gui.conn == None:
+--- /dev/null
++++ code/2dgs_foreground_fix/utils/foreground_stability.py
+@@ -0,0 +1,37 @@
++"""Training-only silhouette and reliable foreground normal constraints."""
++import torch
++import torch.nn.functional as F
++
++
++def mask_regions(mask, radius=3):
++    """Exclude an uncertain band around the silhouette from alpha/normal loss."""
++    binary = (mask > 0.5).float().detach()
++    k = 2 * radius + 1
++    expanded = F.max_pool2d(binary[None], k, stride=1, padding=radius)[0]
++    eroded = -F.max_pool2d(-binary[None], k, stride=1, padding=radius)[0]
++    return eroded, 1.0 - expanded
++
++
++def masked_mean(value, mask):
++    return (value * mask).sum() / mask.sum().clamp_min(1.0)
++
++
++def stability_losses(pkg, foreground, background, iteration, opt):
++    alpha = pkg['rend_alpha']
++    # A black but opaque background cannot satisfy this supervision.
++    bg_loss = masked_mean(alpha, background)
++    fg_loss = masked_mean(1.0 - alpha, foreground)
++    silhouette = opt.lambda_alpha_bg * bg_loss + opt.lambda_alpha_fg * fg_loss
++    weight = opt.lambda_normal * min(1.0, max(0.0,
++        (iteration - opt.normal_from_iter) / max(1, opt.normal_ramp_iters)))
++    rn, sn = pkg['rend_normal'], pkg['surf_normal']
++    with torch.no_grad():
++        reliable = foreground * (alpha.detach() > 0.5)
++        reliable = reliable * (rn.detach().norm(dim=0, keepdim=True) > 1e-6)
++        reliable = reliable * (sn.detach().norm(dim=0, keepdim=True) > 1e-6)
++        reliable = reliable * torch.isfinite(pkg['surf_depth']) * (pkg['surf_depth'].detach() > 0)
++    # Normalize both vectors: increasing opacity is not a way to align normals.
++    cosine = (F.normalize(rn, dim=0, eps=1e-6) * F.normalize(sn, dim=0, eps=1e-6)).sum(0, keepdim=True)
++    normal = weight * masked_mean(1.0 - cosine.clamp(-1, 1), reliable)
++    distortion = opt.lambda_dist * masked_mean(pkg['rend_dist'], reliable)
++    return silhouette, normal, distortion, bg_loss, fg_loss
